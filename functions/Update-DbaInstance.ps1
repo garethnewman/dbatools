@@ -96,6 +96,9 @@ function Update-DbaInstance {
     .PARAMETER ExtractPath
         Lets you specify a location to extract the update file to on the system requiring the update. e.g. C:\temp
 
+    .PARAMETER DownloadUpdates
+        Lets you specify a location to extract the update file to on the system requiring the update. e.g. C:\temp
+
     .NOTES
         Tags: Install, Patching, SP, CU, Instance
         Author: Kirill Kravtsov (@nvarscar) https://nvarscar.wordpress.com/
@@ -176,7 +179,8 @@ function Update-DbaInstance {
         [ValidateSet('Default', 'Basic', 'Negotiate', 'NegotiateWithImplicitCredential', 'Credssp', 'Digest', 'Kerberos')]
         [string]$Authentication = 'Credssp',
         [string]$ExtractPath,
-        [switch]$EnableException
+        [switch]$EnableException,
+        [switch]$DownloadUpdates
 
     )
     begin {
@@ -202,7 +206,7 @@ function Update-DbaInstance {
             }
         }
         $actions = @()
-        $actionTemplate = @{}
+        $actionTemplate = @{ }
         if ($InstanceName) { $actionTemplate.InstanceName = $InstanceName }
         if ($Continue) { $actionTemplate.Continue = $Continue }
         #Putting together list of actions based on current ParameterSet
@@ -379,7 +383,15 @@ function Update-DbaInstance {
                     if ($installer) {
                         $detail.Installer = $installer.FullName
                     } else {
-                        Stop-Function -Message "Could not find installer for the SQL$($detail.MajorVersion) update KB$($detail.KB)" -Continue
+                        if ($DownloadUpdates) {
+                            Write-Host "Looking for "$detail.KB" and downloading."
+                            Get-KbUpdate -Name $detail.KB -Simple -Architecture x64 | Save-KbUpdate -Path "$Path"
+                        } else {
+                            {
+                                Stop-Function -Message "Could not find installer for the SQL$($detail.MajorVersion) update KB$($detail.KB)" -Continue
+                            }
+                        }
+
                     }
                     # update components to mirror the updated version - will be used for multi-step upgrades
                     foreach ($component in $components) {
