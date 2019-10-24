@@ -1,12 +1,21 @@
 function Enable-DbaHideInstance {
     <#
     .SYNOPSIS
+<<<<<<< HEAD
         Enables the Hide Instance setting of the SQL Server network configuration.
 
     .DESCRIPTION
         Enables the Hide Instance setting of the SQL Server network configuration.
 
         This setting requires access to the Windows Server and not the SQL Server instance. The setting is found in SQL Server Configuration Manager under the properties of SQL Server Network Configuration > Protocols for "InstanceName".
+=======
+        Enables Hide Instance of SQL Engine.
+
+    .DESCRIPTION
+        Enables Hide Instance of SQL Engine. Note that this requires access to the Windows Server, not the SQL instance itself.
+
+        This setting is found in Configuration Manager.
+>>>>>>> c8d3d1e8525b5bfa757791bab1a88f21cfaa627d
 
     .PARAMETER SqlInstance
         The target SQL Server instance or instances.
@@ -26,7 +35,11 @@ function Enable-DbaHideInstance {
         Using this switch turns this "nice by default" feature off and enables you to catch exceptions with your own try/catch.
 
     .NOTES
+<<<<<<< HEAD
         Tags: HideInstance, Security
+=======
+        Tags: Certificate, Encryption
+>>>>>>> c8d3d1e8525b5bfa757791bab1a88f21cfaa627d
         Author: Gareth Newman (@gazeranco), ifexists.blog
 
         Website: https://dbatools.io
@@ -52,7 +65,12 @@ function Enable-DbaHideInstance {
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = "Low", DefaultParameterSetName = 'Default')]
     param (
         [Parameter(ValueFromPipeline)]
+<<<<<<< HEAD
         [DbaInstanceParameter[]]$SqlInstance = $env:COMPUTERNAME,
+=======
+        [DbaInstanceParameter[]]
+        $SqlInstance = $env:COMPUTERNAME,
+>>>>>>> c8d3d1e8525b5bfa757791bab1a88f21cfaa627d
         [PSCredential]$Credential,
         [switch]$EnableException
     )
@@ -60,6 +78,7 @@ function Enable-DbaHideInstance {
 
         foreach ($instance in $sqlinstance) {
             Write-Message -Level VeryVerbose -Message "Processing $instance." -Target $instance
+<<<<<<< HEAD
             if ($instance.IsLocalHost) {
                 $null = Test-ElevationRequirement -ComputerName $instance -Continue
             }
@@ -76,6 +95,20 @@ function Enable-DbaHideInstance {
 
             try {
                 $sqlwmi = Invoke-ManagedComputerCommand -ComputerName $resolved.FullComputerName -ScriptBlock { $wmi.Services } -Credential $Credential -EnableException | Where-Object DisplayName -eq "SQL Server ($($instance.InstanceName))"
+=======
+            $null = Test-ElevationRequirement -ComputerName $instance -Continue
+
+            Write-Message -Level Verbose -Message "Resolving hostname."
+            $resolved = $null
+            $resolved = Resolve-DbaNetworkName -ComputerName $instance -Turbo
+
+            if ($null -eq $resolved) {
+                Stop-Function -Message "Can't resolve $instance." -Target $instance -Continue -Category InvalidArgument
+            }
+
+            try {
+                $sqlwmi = Invoke-ManagedComputerCommand -ComputerName $resolved.FullComputerName -ScriptBlock { $wmi.Services } -Credential $Credential -ErrorAction Stop | Where-Object DisplayName -eq "SQL Server ($($instance.InstanceName))"
+>>>>>>> c8d3d1e8525b5bfa757791bab1a88f21cfaa627d
             } catch {
                 Stop-Function -Message "Failed to access $instance" -Target $instance -Continue -ErrorRecord $_
             }
@@ -131,4 +164,8 @@ function Enable-DbaHideInstance {
             }
         }
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> c8d3d1e8525b5bfa757791bab1a88f21cfaa627d
